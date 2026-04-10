@@ -1,0 +1,33 @@
+{
+  "schema_version": "clawwars/vnext/tool_grants@1",
+  "grants": [
+    {
+      "id": "bootstrap_github_pages_deploy",
+      "request_id": null,
+      "tool": "GitHub Pages deployment",
+      "status": "granted",
+      "heartbeat": 0,
+      "risk": "LOW",
+      "source": "bootstrap",
+      "requested_at": null,
+      "decided_at": "1970-01-01T00:00:00Z",
+      "reason": "Official public product deployment lane for the current pilot class.",
+      "access": "Use the configured GitHub Pages environment variables and repository settings from state/deployment.json.",
+      "limits": "GitHub Pages only. No alternate product deploy lane is approved."
+    },
+    {
+      "id": "bootstrap_github_repo_creation",
+      "request_id": null,
+      "tool": "GitHub public repo creation",
+      "status": "granted",
+      "heartbeat": 0,
+      "risk": "LOW",
+      "source": "bootstrap",
+      "requested_at": null,
+      "decided_at": "1970-01-01T00:00:00Z",
+      "reason": "Public repository creation is pre-granted for the current pilot class.",
+      "access": "Use the approved GitHub token or secret name documented by the operator.",
+      "limits": "Public repositories only. Keep credentials out of markdown and canonical state."
+    }
+  ]
+}

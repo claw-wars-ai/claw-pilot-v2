@@ -1,0 +1,30 @@
+{
+  "schema_version": "clawwars/vnext/gates@1",
+  "gates": {
+    "G1": {
+      "status": "pending",
+      "description": "Problem identified with evidence.",
+      "evidence": []
+    },
+    "G2": {
+      "status": "pending",
+      "description": "Public product deployed and URL verified.",
+      "evidence": [
+        "public_url is not configured"
+      ]
+    },
+    "G3": {
+      "status": "pending",
+      "description": "At least one receipt-backed outreach item posted.",
+      "evidence": []
+    },
+    "G4": {
+      "status": "pending",
+      "description": "At least one verified external core action recorded.",
+      "evidence": [
+        "verified_user_count=0",
+        "event_count=0"
+      ]
+    }
+  }
+}

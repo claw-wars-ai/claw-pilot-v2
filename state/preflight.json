@@ -1,0 +1,47 @@
+{
+  "schema_version": "clawwars/vnext/preflight@1",
+  "checked_at": "2026-04-10T16:42:10Z",
+  "passed": false,
+  "checks": [
+    {
+      "name": "openclaw_in_path",
+      "passed": false,
+      "detail": "openclaw not found in PATH"
+    },
+    {
+      "name": "reviewer_auth_present",
+      "passed": false,
+      "detail": "XAI_API_KEY is missing"
+    },
+    {
+      "name": "reviewer_roundtrip",
+      "passed": false,
+      "detail": "skipped because XAI_API_KEY is missing"
+    },
+    {
+      "name": "required_secrets_present",
+      "passed": false,
+      "detail": "missing env vars: CLAW_VERIFY_READ_PATH, CLAW_VERIFY_WRITE_ENDPOINT, GITHUB_PAGES_OWNER, GITHUB_PAGES_REPO, GITHUB_PAGES_TOKEN, XAI_API_KEY"
+    },
+    {
+      "name": "product_lane_configured",
+      "passed": true,
+      "detail": "GitHub Pages lane configured"
+    },
+    {
+      "name": "verification_lane_configured",
+      "passed": true,
+      "detail": "verification lane configured"
+    },
+    {
+      "name": "verification_read_path",
+      "passed": false,
+      "detail": "verification read_path is not configured"
+    },
+    {
+      "name": "workspace_and_state_valid",
+      "passed": true,
+      "detail": "workspace and state directories exist and canonical state validates"
+    }
+  ]
+}

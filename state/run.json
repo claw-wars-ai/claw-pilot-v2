@@ -1,0 +1,10 @@
+{
+  "schema_version": "clawwars/vnext/run@1",
+  "run_id": "pilot-vnext",
+  "pilot_class": "unassigned",
+  "status": "not_started",
+  "current_heartbeat": 0,
+  "max_heartbeats": 20,
+  "updated_at": "2026-04-10T16:48:58Z",
+  "notes": "Prompt 1 scaffold only. Runtime mutations belong to the orchestrator."
+}

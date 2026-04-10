@@ -1,0 +1,30 @@
+{
+  "schema_version": "clawwars/vnext/verification_config@1",
+  "status": "configured",
+  "lane": {
+    "kind": "operator_managed_collector",
+    "readiness": "pending_operator_provisioning",
+    "write_endpoint": null,
+    "read_path": null,
+    "read_format": "jsonl",
+    "summary_path": "state/analytics_summary.json",
+    "client_event_contract": {
+      "event_type": "core_action_completed",
+      "anonymous_user_id_field": "anonymous_user_id",
+      "timestamp_field": "occurred_at",
+      "metadata_rules": "No PII. Anonymous stable IDs or hashes only."
+    },
+    "sync_contract": {
+      "import_format": "jsonl",
+      "import_command": "python tools/verification_events.py import --input <export-path>",
+      "derive_command": "python tools/verification_events.py derive-summary"
+    },
+    "env_vars": [
+      "CLAW_VERIFY_WRITE_ENDPOINT",
+      "CLAW_VERIFY_READ_PATH"
+    ],
+    "pii_policy": "anonymous_only",
+    "verified_user_runs_require_lane": true
+  },
+  "notes": "GitHub Pages cannot host the write collector. Verified-user pilots require this shared operator-managed verification lane and append-only event export."
+}

@@ -1,0 +1,20 @@
+# Repo-local Codex defaults for Claw Pilot vNext.
+# Keep reasoning moderate and the interaction style pragmatic.
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+personality = "pragmatic"
+
+[projects.'C:\Users\jdste\Coding Projects\claw-wars']
+trust_level = "trusted"
+
+[tui]
+# One completion notification is enough for this repo's heartbeat-oriented flow.
+notifications = ["agent-turn-complete"]
+
+[mcp_servers.chrome-devtools]
+# Disabled by default. Enable only when a prompt explicitly needs browser automation.
+enabled = false
+
+[mcp_servers.playwright]
+# Disabled by default. Enable only when a prompt explicitly needs browser automation.
+enabled = false

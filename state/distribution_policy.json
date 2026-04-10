@@ -1,0 +1,21 @@
+{
+  "schema_version": "clawwars/vnext/distribution_policy@1",
+  "default_surface": "reddit_public_post",
+  "additional_surface": "hackernews_show_hn",
+  "surfaces": [
+    {
+      "id": "reddit_public_post",
+      "platform": "reddit",
+      "target_rule": "non-empty public subreddit or thread target",
+      "status": "enabled",
+      "notes": "Baseline public Reddit posting surface."
+    },
+    {
+      "id": "hackernews_show_hn",
+      "platform": "hackernews_show_hn",
+      "target_rule": "target must be exactly show-hn",
+      "status": "enabled",
+      "notes": "Narrow optional extension for a public Show HN submission."
+    }
+  ]
+}

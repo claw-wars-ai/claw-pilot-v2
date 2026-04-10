@@ -1,0 +1,21 @@
+{
+  "schema_version": "clawwars/vnext/deployment@1",
+  "status": "configured",
+  "product_lane": {
+    "kind": "github_pages",
+    "mode": "github_actions",
+    "repository": null,
+    "owner": null,
+    "branch": "gh-pages",
+    "site_path": "/",
+    "public_url": null,
+    "url_verified": false,
+    "required_env_vars": [
+      "GITHUB_PAGES_OWNER",
+      "GITHUB_PAGES_REPO",
+      "GITHUB_PAGES_TOKEN"
+    ],
+    "verified_at": null
+  },
+  "notes": "GitHub Pages is the only approved public product deployment lane for the current pilot class."
+}

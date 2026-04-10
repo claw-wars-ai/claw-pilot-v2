@@ -1,0 +1,219 @@
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+  &lt;title&gt;Free Batch Image Resizer - No Limits, No Watermarks&lt;/title&gt;
+  &lt;!-- Plausible Analytics (HB6 stub) --&gt;
+  &lt;script defer data-domain=&quot;jdsteel61.github.io&quot; data-track-load=&quot;true&quot; src=&quot;https://plausible.io/js/script.js&quot;&gt;&lt;/script&gt;
+  &lt;script src=&quot;https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js&quot;&gt;&lt;/script&gt;
+  &lt;style&gt;
+    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #f8f9fa; }
+    h1 { text-align: center; color: #1a1a1a; margin-bottom: 10px; }
+    subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 1.1em; }
+    #upload { border: 3px dashed #007bff; padding: 50px; text-align: center; cursor: pointer; background: white; border-radius: 12px; transition: all 0.2s; }
+    #upload:hover { border-color: #0056b3; background: #f0f8ff; }
+    #upload.dragover { border-color: #28a745; background: #f8fff8; }
+    #files { display: none; }
+    #thumbs { display: flex; flex-wrap: wrap; gap: 12px; margin: 30px 0; justify-content: center; }
+    .thumb { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 2px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s; }
+    .thumb:hover { transform: scale(1.05); }
+    .controls { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 20px 0; }
+    label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: 500; }
+    input[type=range] { flex: 1; margin-left: 10px; height: 6px; }
+    select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; background: white; }
+    #process { background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 16px 32px; border: none; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 25px; width: 100%; border-radius: 12px; transition: all 0.3s; box-shadow: 0 4px 12px rgba(40,167,69,0.3); }
+    #process:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(40,167,69,0.4); }
+    #process:disabled { background: #6c757d; cursor: not-allowed; box-shadow: none; }
+    #progress { width: 100%; height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden; display: none; margin-top: 15px; }
+    #progress-bar { height: 100%; background: linear-gradient(90deg, #28a745, #20c997); width: 0%; transition: width 0.4s ease; }
+    #status { margin-top: 20px; text-align: center; font-weight: 600; padding: 15px; border-radius: 8px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .error { color: #dc3545; background: #f8d7da; border: 1px solid #f5c6cb; }
+    .success { color: #155724; background: #d4edda; border: 1px solid #c3e6cb; }
+    footer { text-align: center; margin-top: 40px; color: #666; font-size: 0.9em; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;🖼️ Free Batch Image Resizer&lt;/h1&gt;
+  &lt;div class=&quot;subtitle&quot;&gt;Batch resize &amp; compress up to 20 images locally. &lt;b&gt;No limits, no watermarks, no signup.&lt;/b&gt; JPG/PNG/WEBP supported.&lt;/div&gt;
+  
+  &lt;div id=&quot;upload&quot;&gt;
+    &lt;p&gt;📁 Click or drag &amp; drop your images here (max 20, &lt;10MB each)&lt;/p&gt;
+    &lt;input type=&quot;file&quot; id=&quot;files&quot; multiple accept=&quot;image/*&quot;&gt;
+  &lt;/div&gt;
+  
+  &lt;div id=&quot;thumbs&quot;&gt;&lt;/div&gt;
+  
+  &lt;div class=&quot;controls&quot;&gt;
+    &lt;label&gt;Max Width: &lt;span id=&quot;wval&quot;&gt;1024&lt;/span&gt;px &lt;input type=&quot;range&quot; id=&quot;maxw&quot; min=&quot;200&quot; max=&quot;4000&quot; value=&quot;1024&quot;&gt;&lt;/label&gt;
+    &lt;label&gt;Quality: &lt;span id=&quot;qval&quot;&gt;85&lt;/span&gt;% &lt;input type=&quot;range&quot; id=&quot;quality&quot; min=&quot;50&quot; max=&quot;100&quot; value=&quot;85&quot;&gt;&lt;/label&gt;
+    &lt;label&gt;Output Format: &lt;select id=&quot;format&quot;&gt;&lt;option value=&quot;image/jpeg&quot;&gt;JPG&lt;/option&gt;&lt;option value=&quot;image/png&quot;&gt;PNG&lt;/option&gt;&lt;option value=&quot;image/webp&quot;&gt;WEBP&lt;/option&gt;&lt;/select&gt;&lt;/label&gt;
+  &lt;/div&gt;
+  
+  &lt;button id=&quot;process&quot; disabled&gt;🚀 Process &amp; Download ZIP&lt;/button&gt;
+  &lt;div id=&quot;progress&quot;&gt;&lt;div id=&quot;progress-bar&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;div id=&quot;status&quot;&gt;&lt;/div&gt;
+
+  &lt;footer&gt;
+    Built by &lt;a href=&quot;https://openclaw.ai&quot; target=&quot;_blank&quot;&gt;OpenClaw AI Agent&lt;/a&gt; | &lt;a href=&quot;#&quot; onclick=&quot;plausible('feedback')&quot;&gt;Feedback?&lt;/a&gt; | Open source soon
+  &lt;/footer&gt;
+
+  &lt;script&gt;
+    window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) };
+    
+    const fileInput = document.getElementById('files');
+    const thumbs = document.getElementById('thumbs');
+    const processBtn = document.getElementById('process');
+    const progress = document.getElementById('progress');
+    const progressBar = document.getElementById('progress-bar');
+    const status = document.getElementById('status');
+    let selectedFiles = [];
+
+    // Drag &amp; drop
+    const uploadDiv = document.getElementById('upload');
+    uploadDiv.addEventListener('dragover', e =&gt; { e.preventDefault(); uploadDiv.classList.add('dragover'); });
+    uploadDiv.addEventListener('dragleave', () =&gt; uploadDiv.classList.remove('dragover'));
+    uploadDiv.addEventListener('drop', e =&gt; {
+      e.preventDefault();
+      uploadDiv.classList.remove('dragover');
+      fileInput.files = e.dataTransfer.files;
+      handleFiles({ target: fileInput });
+    });
+    uploadDiv.addEventListener('click', () =&gt; fileInput.click());
+
+    fileInput.addEventListener('change', handleFiles);
+
+    function handleFiles(e) {
+      selectedFiles = Array.from(e.target.files)
+        .slice(0, 20)
+        .filter(f =&gt; f.type.startsWith('image/') &amp;&amp; f.size &lt; 10*1024*1024);
+      if (selectedFiles.length === 0) {
+        setStatus('&lt;span class=&quot;error&quot;&gt;❌ No valid images (JPG/PNG/WEBP &lt;10MB)&lt;/span&gt;', 'error');
+        processBtn.disabled = true;
+        thumbs.innerHTML = '';
+        return;
+      }
+      plausible('upload', { props: { files: selectedFiles.length } });
+      setStatus(`✅ ${selectedFiles.length} images loaded.`);
+      processBtn.disabled = false;
+      renderThumbs();
+    }
+
+    function renderThumbs() {
+      thumbs.innerHTML = '';
+      selectedFiles.forEach((file, i) =&gt; {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () =&gt; {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = canvas.height = 120;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, 120, 120);
+          const thumb = document.createElement('img');
+          thumb.src = canvas.toDataURL('image/jpeg', 0.8);
+          thumb.className = 'thumb';
+          thumb.title = `${file.name}\n${(file.size / 1024 / 1024).toFixed(2)} MB`;
+          thumbs.appendChild(thumb);
+          URL.revokeObjectURL(url);
+        };
+        img.src = url;
+      });
+    }
+
+    // Live controls
+    document.getElementById('maxw').oninput = e =&gt; document.getElementById('wval').textContent = e.target.value;
+    document.getElementById('quality').oninput = e =&gt; document.getElementById('qval').textContent = e.target.value;
+
+    function setStatus(msg, className = '') {
+      status.innerHTML = msg;
+      status.className = className;
+    }
+
+    // Full MVP Process
+    processBtn.onclick = async () =&gt; {
+      plausible('process_start', { props: { files: selectedFiles.length } });
+      const maxWidth = parseInt(document.getElementById('maxw').value);
+      const quality = parseInt(document.getElementById('quality').value) / 100;
+      const mimeType = document.getElementById('format').value;
+      progress.style.display = 'block';
+      progressBar.style.width = '0%';
+      setStatus('Processing images...');
+      processBtn.disabled = true;
+
+      const blobs = [];
+      let totalSavings = 0;
+
+      for (let i = 0; i &lt; selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        try {
+          const img = await loadImage(URL.createObjectURL(file));
+          const { canvas, blob } = await resizeImage(img, maxWidth, mimeType, quality);
+          const savings = ((file.size - blob.size) / file.size * 100).toFixed(1);
+          console.log(`${file.name}: ${formatBytes(file.size)} → ${formatBytes(blob.size)} (${savings}% ↓)`);
+          totalSavings += parseFloat(savings);
+          blobs.push({ name: file.name.split('.').slice(0,-1).join('.') + '.' + mimeType.split('/')[1], blob });
+          progressBar.style.width = `${((i+1) / selectedFiles.length * 80)}%`;  // 80% process
+        } catch (e) {
+          console.error('Error:', file.name, e);
+        }
+      }
+
+      progressBar.style.width = '85%';
+      setStatus(`Zipping ${blobs.length} images... (Avg ${totalSavings / selectedFiles.length | 0}% smaller)`);
+
+      // ZIP
+      const zip = new JSZip();
+      blobs.forEach(({name, blob}) =&gt; zip.file(name, blob));
+      const zipBlob = await zip.generateAsync({type: 'blob'});
+      download(zipBlob, 'resized-images.zip');
+
+      progressBar.style.width = '100%';
+      setStatus('&lt;span class=&quot;success&quot;&gt;✅ ZIP downloaded! Refresh to try more.&lt;/span&gt;', 'success');
+      plausible('download', { props: { files: blobs.length, savings: totalSavings.toFixed(0) } });
+      processBtn.disabled = false;
+    };
+
+    async function loadImage(src) {
+      return new Promise((res, rej) =&gt; {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () =&gt; res(img);
+        img.onerror = rej;
+        img.src = src;
+      });
+    }
+
+    async function resizeImage(img, maxWidth, mimeType, quality) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const ratio = Math.min(1, maxWidth / img.naturalWidth);
+      canvas.width = img.naturalWidth * ratio;
+      canvas.height = img.naturalHeight * ratio;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise(res =&gt; canvas.toBlob(res, mimeType, quality));
+      return { canvas, blob };
+    }
+
+    function download(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
