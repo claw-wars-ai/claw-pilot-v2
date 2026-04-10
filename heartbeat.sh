@@ -2,7 +2,7 @@
 # ============================================================================
 # heartbeat.sh - Claw Pilot Orchestrator
 #
-# Single agent, AI-reviewed outreach, 20 heartbeats, minimal operator involvement.
+# Single agent, AI-reviewed outreach, 10-heartbeat qualification run.
 #
 # Usage:
 #   ./heartbeat.sh                # Run next heartbeat
@@ -13,7 +13,7 @@
 #   ./heartbeat.sh --review-queue # Process structured tool requests
 #   ./heartbeat.sh --render-summaries
 #   ./heartbeat.sh --record-receipt <item-id> --receipt-type <type> --receipt-value <value>
-#   ./heartbeat.sh --reset        # Reset to HB0
+#   ./heartbeat.sh --reset        # Clear local heartbeat files only
 #   ./heartbeat.sh --review-test  # Test the AI reviewer with sample content
 #
 # Env:
@@ -36,7 +36,7 @@ MODEL="${MODEL:-xai/grok-4-1-fast-reasoning}"
 REVIEWER_MODEL="${REVIEWER_MODEL:-xai/grok-4-1-fast-non-reasoning}"
 RUNNER="${RUNNER:-openclaw}"
 XAI_API_KEY="${XAI_API_KEY:-}"
-MAX_HEARTBEATS=20
+MAX_HEARTBEATS=10
 DRY_RUN=false
 ACTION="run-once"
 RECEIPT_ITEM_ID=""
@@ -190,6 +190,13 @@ update_gates() {
     python "${SCRIPT_DIR}/tools/orchestrator_state.py" \
         --state-dir "${STATE_DIR}" \
         update-gates
+}
+
+enforce_deadlines() {
+    python "${SCRIPT_DIR}/tools/orchestrator_state.py" \
+        --state-dir "${STATE_DIR}" \
+        enforce-deadlines \
+        --next-heartbeat "${hb}"
 }
 
 render_outreach_summaries() {
@@ -375,6 +382,11 @@ if $DRY_RUN; then
     exit 0
 fi
 
+if ! enforce_deadlines; then
+    log "ERROR: Gate deadline already missed. See ${STATE_DIR}/run.json"
+    exit 1
+fi
+
 if ! run_preflight; then
     log "ERROR: Preflight failed. See ${STATE_DIR}/preflight.json"
     exit 1
@@ -482,10 +494,11 @@ process_outreach
 update_gates || log "WARNING: gate update failed"
 
 case $hb in
-    3)  log "GATE G1 - Problem selected?" ;;
-    7)  log "GATE G2 - Public URL live?" ;;
-    10) log "GATE G3 - First verified user?" ;;
-    20) log "GATE G4 - 10 verified users? PILOT COMPLETE." ;;
+    3)  log "GATE G1 - Problem selected with evidence?" ;;
+    6)  log "GATE G2 - Public URL live and verified?" ;;
+    7)  log "GATE G3 - First receipt-backed outreach item executed?" ;;
+    8)  log "GATE G4 - First verified external core-action event?" ;;
+    10) log "HB10 - Wrap, review, and classify the pilot." ;;
 esac
 
 if [ -f "${WORKSPACE}/JOURNEY.md" ]; then

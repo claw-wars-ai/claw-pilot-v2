@@ -223,6 +223,7 @@ class OrchestratorStateTests(unittest.TestCase):
             state_dir = self.make_state_dir(temp_dir)
             workspace = temp_dir / "workspace"
             workspace.mkdir()
+            (workspace / "OBJECTIVE.md").write_text("# Objective\n", encoding="utf-8")
             bin_dir = temp_dir / "bin"
             bin_dir.mkdir()
             (bin_dir / "openclaw.cmd").write_text("@echo off\nexit /b 0\n", encoding="utf-8")
@@ -254,6 +255,28 @@ class OrchestratorStateTests(unittest.TestCase):
             checks = {check["name"]: check for check in preflight["checks"]}
             self.assertTrue(checks["openclaw_in_path"]["passed"])
             self.assertFalse(checks["reviewer_auth_present"]["passed"])
+
+    def test_preflight_flags_missing_workspace_objective(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir_str:
+            temp_dir = Path(temp_dir_str)
+            state_dir = self.make_state_dir(temp_dir)
+            workspace = temp_dir / "workspace"
+            workspace.mkdir()
+
+            result = self.run_tool(
+                "--state-dir",
+                str(state_dir),
+                "--workspace",
+                str(workspace),
+                "preflight",
+                env={"PATH": "", "SYSTEMROOT": os.environ.get("SYSTEMROOT", "")},
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            preflight = json.loads((state_dir / "preflight.json").read_text(encoding="utf-8"))
+            checks = {check["name"]: check for check in preflight["checks"]}
+            self.assertIn("workspace_objective_seeded", checks)
+            self.assertFalse(checks["workspace_objective_seeded"]["passed"])
 
     def test_update_gates_uses_canonical_state(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir_str:
@@ -352,6 +375,24 @@ class OrchestratorStateTests(unittest.TestCase):
             deployment_after = json.loads((state_dir / "deployment.json").read_text(encoding="utf-8"))
             self.assertEqual(gates["G2"]["status"], "pending")
             self.assertFalse(deployment_after["product_lane"]["url_verified"])
+
+    def test_enforce_deadlines_blocks_run_after_missed_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir_str:
+            temp_dir = Path(temp_dir_str)
+            state_dir = self.make_state_dir(temp_dir)
+            gates = json.loads((state_dir / "gates.json").read_text(encoding="utf-8"))
+            gates["gates"]["G1"]["status"] = "pass"
+            (state_dir / "gates.json").write_text(json.dumps(gates, indent=2) + "\n", encoding="utf-8")
+
+            result = self.run_tool("--state-dir", str(state_dir), "enforce-deadlines", "--next-heartbeat", "7")
+
+            self.assertNotEqual(result.returncode, 0)
+            payload = json.loads(result.stdout)
+            run = json.loads((state_dir / "run.json").read_text(encoding="utf-8"))
+            self.assertFalse(payload["allowed"])
+            self.assertEqual(payload["blocked_gate"], "G2")
+            self.assertEqual(run["status"], "blocked")
+            self.assertEqual(run["classification"], "deployment_failure")
 
 
 if __name__ == "__main__":

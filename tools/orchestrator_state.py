@@ -19,6 +19,13 @@ from validate_state import validate_state_dir
 ROOT = Path(__file__).resolve().parents[1]
 PREFLIGHT_SCHEMA = "clawwars/vnext/preflight@1"
 REVIEWER_URL = "https://api.x.ai/v1/chat/completions"
+GATE_DEADLINES = {"G1": 3, "G2": 6, "G3": 7, "G4": 8}
+GATE_CLASSIFICATIONS = {
+    "G1": "problem_selection_failure",
+    "G2": "deployment_failure",
+    "G3": "harness_distribution_failure",
+    "G4": "harness_distribution_failure",
+}
 
 
 def utc_now() -> str:
@@ -181,11 +188,20 @@ def run_preflight(state_dir: Path, workspace: Path, reviewer_model: str) -> int:
     add_check("verification_read_path", read_path_ok, read_path_detail)
 
     workspace_ok = workspace.exists() and workspace.is_dir()
+    workspace_objective = workspace / "OBJECTIVE.md"
+    workspace_objective_ok = workspace_objective.exists() and workspace_objective.is_file()
+    add_check(
+        "workspace_objective_seeded",
+        workspace_objective_ok,
+        f"workspace objective exists: {workspace_objective}" if workspace_objective_ok else f"missing workspace objective: {workspace_objective}",
+    )
     state_ok = state_dir.exists() and state_dir.is_dir()
     state_errors = validate_state_dir(state_dir) if state_ok else ["state directory missing"]
-    combined_ok = workspace_ok and state_ok and not state_errors
+    combined_ok = workspace_ok and workspace_objective_ok and state_ok and not state_errors
     if not workspace_ok:
         detail = f"workspace directory missing: {workspace}"
+    elif not workspace_objective_ok:
+        detail = f"workspace objective missing: {workspace_objective}"
     elif not state_ok:
         detail = f"state directory missing: {state_dir}"
     elif state_errors:
@@ -295,6 +311,44 @@ def status_payload(state_dir: Path, heartbeat: int, max_heartbeats: int, model: 
     }
 
 
+def enforce_deadlines(state_dir: Path, next_heartbeat: int) -> int:
+    gates = load_json(state_dir / "gates.json").get("gates", {})
+    run_path = state_dir / "run.json"
+    run = load_json(run_path)
+
+    for gate_name, deadline in GATE_DEADLINES.items():
+        if next_heartbeat <= deadline:
+            continue
+        gate = gates.get(gate_name, {})
+        if gate.get("status") == "pass":
+            continue
+        run["status"] = "blocked"
+        run["updated_at"] = utc_now()
+        run["blocked_gate"] = gate_name
+        run["blocked_after_heartbeat"] = deadline
+        run["classification"] = GATE_CLASSIFICATIONS[gate_name]
+        run["block_reason"] = f"{gate_name} missed at HB{deadline}"
+        save_json(run_path, run)
+        print(
+            json.dumps(
+                {
+                    "allowed": False,
+                    "next_heartbeat": next_heartbeat,
+                    "blocked_gate": gate_name,
+                    "deadline": deadline,
+                    "gate_status": gate.get("status"),
+                    "classification": GATE_CLASSIFICATIONS[gate_name],
+                    "evidence": gate.get("evidence", []),
+                },
+                indent=2,
+            )
+        )
+        return 1
+
+    print(json.dumps({"allowed": True, "next_heartbeat": next_heartbeat}, indent=2))
+    return 0
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--state-dir", default=str(ROOT / "state"))
@@ -307,6 +361,8 @@ def parse_args() -> argparse.Namespace:
     subparsers.add_parser("preflight")
     subparsers.add_parser("update-gates")
     subparsers.add_parser("status")
+    deadline_parser = subparsers.add_parser("enforce-deadlines")
+    deadline_parser.add_argument("--next-heartbeat", type=int, required=True)
     return parser.parse_args()
 
 
@@ -330,6 +386,8 @@ def main() -> int:
         )
         print(json.dumps(payload, indent=2))
         return 0
+    if args.command == "enforce-deadlines":
+        return enforce_deadlines(state_dir=state_dir, next_heartbeat=args.next_heartbeat)
     raise ValueError(f"unsupported command: {args.command}")
 
 
