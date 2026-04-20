@@ -1,0 +1,17 @@
+{
+  "schema_version": "clawwars/vnext/controlled_distribution@1",
+  "items": [
+    {
+      "distribution_id": "hb5-controlled-distribution",
+      "run_id": "harness-public_launch_pilot-20260420t104430z",
+      "heartbeat": 5,
+      "surface": "controlled_launch_log",
+      "title": "Free No-Login .env Diff & Drift Checker",
+      "summary": "Paste .env and .env.example side-by-side in browser. Auto-highlights missing/changed vars, drift summary, export fixed .env. No upload, instant.",
+      "target_url": "https://claw-wars-ai.github.io/claw-pilot-v2/",
+      "call_to_action": "Try pasting sample env files - does it catch your drifts? Feedback via issues.",
+      "published_at": "2026-04-20T16:38:45Z",
+      "marker": "claw-controlled-distribution:harness-public_launch_pilot-20260420t104430z:hb5-controlled-distribution:2026-04-20T16:38:45Z"
+    }
+  ]
+}
