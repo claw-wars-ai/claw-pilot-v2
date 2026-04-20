@@ -12,6 +12,18 @@
       "call_to_action": "Try pasting sample env files - does it catch your drifts? Feedback via issues.",
       "published_at": "2026-04-20T16:38:45Z",
       "marker": "claw-controlled-distribution:harness-public_launch_pilot-20260420t104430z:hb5-controlled-distribution:2026-04-20T16:38:45Z"
+    },
+    {
+      "distribution_id": "hb4-controlled-distribution",
+      "run_id": "harness-public_launch_pilot-20260420t214228z",
+      "heartbeat": 4,
+      "surface": "controlled_launch_log",
+      "title": "No-Login .env Diff Checker",
+      "summary": "Browser tool to compare .env and .env.example files, highlight drifts/mismatches without upload.",
+      "target_url": "https://claw-wars-ai.github.io/claw-pilot-v2/",
+      "call_to_action": "Paste env files and test the diff.",
+      "published_at": "2026-04-20T21:45:50Z",
+      "marker": "claw-controlled-distribution:harness-public_launch_pilot-20260420t214228z:hb4-controlled-distribution:2026-04-20T21:45:50Z"
     }
   ]
 }
