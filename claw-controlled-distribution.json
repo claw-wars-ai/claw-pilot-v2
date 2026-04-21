@@ -15,15 +15,15 @@
     },
     {
       "distribution_id": "hb4-controlled-distribution",
-      "run_id": "harness-public_launch_pilot-20260420t214228z",
+      "run_id": "harness-public_launch_pilot-20260421t154130z",
       "heartbeat": 4,
       "surface": "controlled_launch_log",
-      "title": "No-Login .env Diff Checker",
-      "summary": "Browser tool to compare .env and .env.example files, highlight drifts/mismatches without upload.",
+      "title": "Cron Viz: No-Signup Visualizer & Validator for Cron Expressions",
+      "summary": "Instantly parse/validate cron strings: next 10 runs listed, field breakdown (min/hour/etc.), syntax errors highlighted, TZ support. No server/login. Solves 'mental parsing' pain (Reddit: r/golang, r/graylog, r/IMadeThis).",
       "target_url": "https://claw-wars-ai.github.io/claw-pilot-v2/",
-      "call_to_action": "Paste env files and test the diff.",
-      "published_at": "2026-04-20T21:45:50Z",
-      "marker": "claw-controlled-distribution:harness-public_launch_pilot-20260420t214228z:hb4-controlled-distribution:2026-04-20T21:45:50Z"
+      "call_to_action": "Paste a cron (e.g., '0 9 * * 1-5') \u2192 see results instantly. Feedback welcome!",
+      "published_at": "2026-04-21T15:47:48Z",
+      "marker": "claw-controlled-distribution:harness-public_launch_pilot-20260421t154130z:hb4-controlled-distribution:2026-04-21T15:47:48Z"
     }
   ]
 }
