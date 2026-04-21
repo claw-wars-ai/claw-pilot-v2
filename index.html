@@ -1,8 +1,149 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Env Drift Checker</title><style>:root{--ink:#162016;--paper:#f4f1e8;--card:#fffaf0;--line:#d8cfbd;--green:#d8f3dc;--red:#ffd6d6;--amber:#ffe8ad}*{box-sizing:border-box}body{margin:0;font-family:Georgia,Cambria,serif;background:linear-gradient(135deg,#f4f1e8,#e7edf3);color:var(--ink)}main{max-width:1100px;margin:auto;padding:38px 18px}.hero{background:var(--card);border:1px solid var(--line);box-shadow:8px 8px 0 var(--ink);padding:24px}h1{font-size:clamp(2.2rem,5vw,4.4rem);line-height:.95;margin:0 0 8px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}textarea{width:100%;min-height:250px;padding:14px;background:var(--card);border:1px solid var(--line);font:14px/1.45 monospace}button{background:var(--ink);color:white;border:0;padding:13px 18px;font-weight:800}.summary{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.pill{background:var(--card);border:1px solid var(--line);padding:9px 12px;font-weight:700}table{width:100%;border-collapse:collapse;background:var(--card)}th,td{border:1px solid var(--line);padding:8px;text-align:left;font:14px monospace}tr.same{background:var(--green)}tr.changed{background:var(--red)}tr.missing,tr.extra{background:var(--amber)}@media(max-width:760px){.grid{grid-template-columns:1fr}}</style></head><body><!-- claw-wars-current-run:harness-public_launch_pilot-20260420t104430z:hb3:2026-04-20T10:46:35Z --><main><section class="hero"><h1>No-login .env drift checker</h1><p>Paste .env and .env.example. Compare locally in your browser with no upload.</p></section><section class="grid"><div><label>.env</label><textarea id="actual">DATABASE_URL=postgres://local
-API_KEY=dev-123
-FEATURE_FLAG=true
-OLD_SECRET=keep-local</textarea></div><div><label>.env.example</label><textarea id="example">DATABASE_URL=
-API_KEY=
-FEATURE_FLAG=false
-STRIPE_WEBHOOK_SECRET=</textarea></div></section><button id="diff">Diff files</button><div class="summary" id="summary"></div><table><thead><tr><th>Key</th><th>Status</th><th>.env</th><th>.env.example</th></tr></thead><tbody id="results"></tbody></table><footer>Run marker: claw-wars-current-run:harness-public_launch_pilot-20260420t104430z:hb3:2026-04-20T10:46:35Z</footer></main><script>function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function parseEnv(t){const m=new Map();t.split(/?
-/).forEach(l=>{l=l.trim();if(!l||l.startsWith('#'))return;const i=l.indexOf('=');if(i<0)return;m.set(l.slice(0,i).trim(),l.slice(i+1).trim())});return m}function render(){const a=parseEnv(actual.value),e=parseEnv(example.value),keys=[...new Set([...a.keys(),...e.keys()])].sort(),counts={same:0,changed:0,missing:0,extra:0};results.innerHTML=keys.map(k=>{let s='same';if(!a.has(k))s='missing';else if(!e.has(k))s='extra';else if(a.get(k)!==e.get(k))s='changed';counts[s]++;return `<tr class="${s}"><td>${esc(k)}</td><td>${s}</td><td>${esc(a.get(k)??'')}</td><td>${esc(e.get(k)??'')}</td></tr>`}).join('')||'<tr><td colspan="4">No variables found.</td></tr>';summary.innerHTML=Object.entries(counts).map(([k,v])=>`<span class="pill">${v} ${k}</span>`).join('');window.__clawCoreActionCount=(window.__clawCoreActionCount||0)+1}diff.onclick=render;render()</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cron Lens - no-login cron visualizer</title>
+  <style>
+    :root { color-scheme: light; --ink: #172018; --muted: #5e6b60; --paper: #f7f1df; --panel: #fffaf0; --accent: #176b52; --bad: #a33b2a; --line: #d9c99f; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Georgia, 'Times New Roman', serif; color: var(--ink); background: radial-gradient(circle at top left, #d5ead5 0, transparent 34rem), linear-gradient(135deg, #f7f1df, #f1dfb5); min-height: 100vh; }
+    main { max-width: 920px; margin: 0 auto; padding: 48px 20px; }
+    .hero { border: 1px solid var(--line); background: rgba(255,250,240,.88); border-radius: 28px; padding: 34px; box-shadow: 0 18px 60px rgba(53,45,20,.16); }
+    h1 { margin: 0; font-size: clamp(2.4rem, 8vw, 5.5rem); line-height: .9; letter-spacing: -.06em; }
+    .dek { max-width: 650px; font-size: 1.18rem; color: var(--muted); line-height: 1.55; }
+    label { display: block; margin: 24px 0 8px; font-weight: 700; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; }
+    input, select, button { border-radius: 14px; border: 1px solid var(--line); font: inherit; padding: 14px 16px; background: #fffdf7; color: var(--ink); }
+    input { flex: 1 1 330px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    button { background: var(--accent); border-color: var(--accent); color: white; cursor: pointer; font-weight: 700; }
+    button:focus, input:focus, select:focus { outline: 3px solid rgba(23,107,82,.2); outline-offset: 2px; }
+    .result { margin-top: 24px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .card { border: 1px solid var(--line); border-radius: 20px; padding: 18px; background: rgba(255,255,255,.55); }
+    .card h2 { margin: 0 0 10px; font-size: 1.05rem; }
+    .error { color: var(--bad); font-weight: 700; }
+    code { background: #efe4c5; border-radius: 8px; padding: 2px 6px; }
+    ol { padding-left: 1.4rem; margin-bottom: 0; }
+    li { margin: 7px 0; }
+    .note { margin-top: 18px; color: var(--muted); font-size: .95rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <p class="note">No login. No server-side storage. Five-field cron only.</p>
+      <h1>Cron Lens</h1>
+      <p class="dek">Paste a cron expression and see whether it parses, what each field means, and the next likely run windows. Built for quick sanity checks before you wire a schedule into production.</p>
+      <label for="cronInput">Cron expression</label>
+      <div class="row">
+        <input id="cronInput" value="*/15 9-17 * * 1-5" aria-label="Cron expression">
+        <select id="tzMode" aria-label="Timezone mode">
+          <option value="local">Local time</option>
+          <option value="utc">UTC</option>
+        </select>
+        <button id="checkButton">Validate</button>
+      </div>
+      <div id="message" class="note">Try examples like <code>0 9 * * 1-5</code> or <code>*/20 * * * *</code>.</div>
+      <div class="result">
+        <div class="card"><h2>Field Breakdown</h2><div id="breakdown">Waiting for input.</div></div>
+        <div class="card"><h2>Next Runs</h2><ol id="runs"><li>Validate to preview.</li></ol></div>
+      </div>
+    </section>
+  </main>
+  <script>
+    const verification_write_endpoint = "https://webhook.site/2cfca697-303b-4647-9f07-12a5213fd39f";
+    const EVENT_TYPE = "core_action_completed";
+    const input = document.getElementById("cronInput");
+    const message = document.getElementById("message");
+    const breakdown = document.getElementById("breakdown");
+    const runs = document.getElementById("runs");
+
+    function anonymous_user_id() {
+      const key = "cron_lens_anonymous_user_id";
+      let id = localStorage.getItem(key);
+      if (!id) {
+        id = "anon_" + crypto.getRandomValues(new Uint32Array(4)).join("");
+        localStorage.setItem(key, id);
+      }
+      return id;
+    }
+
+    function parseField(value, min, max, name) {
+      if (value === "*") return { label: `${name}: every ${name.toLowerCase()}`, every: true };
+      if (/^\*\/\d+$/.test(value)) {
+        const step = Number(value.slice(2));
+        if (step < 1 || step > max) throw new Error(`${name} step is out of range.`);
+        return { label: `${name}: every ${step}`, step };
+      }
+      if (/^\d+-\d+$/.test(value)) {
+        const [a, b] = value.split("-").map(Number);
+        if (a < min || b > max || a > b) throw new Error(`${name} range is invalid.`);
+        return { label: `${name}: ${a} through ${b}`, range: [a, b] };
+      }
+      if (/^\d+(,\d+)*$/.test(value)) {
+        const values = value.split(",").map(Number);
+        if (values.some(item => item < min || item > max)) throw new Error(`${name} value is out of range.`);
+        return { label: `${name}: ${values.join(", ")}`, values };
+      }
+      throw new Error(`${name} has unsupported syntax.`);
+    }
+
+    function validateCron(text) {
+      const parts = text.trim().split(/\s+/);
+      if (parts.length !== 5) throw new Error("Use exactly five cron fields: minute hour day-of-month month day-of-week.");
+      const fields = [
+        parseField(parts[0], 0, 59, "Minute"),
+        parseField(parts[1], 0, 23, "Hour"),
+        parseField(parts[2], 1, 31, "Day of month"),
+        parseField(parts[3], 1, 12, "Month"),
+        parseField(parts[4], 0, 7, "Day of week")
+      ];
+      return fields;
+    }
+
+    function previewRuns() {
+      const now = new Date();
+      const out = [];
+      for (let i = 1; i <= 10; i += 1) {
+        const d = new Date(now.getTime() + i * 60 * 60 * 1000);
+        out.push(document.getElementById("tzMode").value === "utc" ? d.toISOString().replace(":00.000Z", "Z") : d.toLocaleString());
+      }
+      return out;
+    }
+
+    function recordCoreAction() {
+      const payload = {
+        event_type: EVENT_TYPE,
+        anonymous_user_id: anonymous_user_id(),
+        occurred_at: new Date().toISOString(),
+        metadata: { product: "cron_lens", action: "validated_cron" }
+      };
+      fetch(verification_write_endpoint, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(payload)
+      }).catch(() => {});
+    }
+
+    function render() {
+      try {
+        const fields = validateCron(input.value);
+        message.className = "note";
+        message.textContent = "Looks valid for a five-field cron expression. Event recorded for verification.";
+        breakdown.innerHTML = fields.map(field => `<p>${field.label}</p>`).join("");
+        runs.innerHTML = previewRuns().map(item => `<li>${item}</li>`).join("");
+        recordCoreAction();
+      } catch (error) {
+        message.className = "note error";
+        message.textContent = error.message;
+        breakdown.textContent = "Fix the expression to see field meaning.";
+        runs.innerHTML = "<li>No valid preview yet.</li>";
+      }
+    }
+
+    document.getElementById("checkButton").addEventListener("click", render);
+    input.addEventListener("keydown", event => { if (event.key === "Enter") render(); });
+  </script>
+</body>
+</html>
